@@ -28,6 +28,21 @@ jobs:
           file: ./Dockerfile
           platforms: linux/amd64
           push: true
+          provenance: false
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/hpa-final:latest
             ${{ secrets.DOCKERHUB_USERNAME }}/hpa-final:${{ github.sha }}
+
+      - name: Smoke test the image
+        run: |
+          echo "Pulling back the image we just pushed..."
+          docker pull ${{ secrets.DOCKERHUB_USERNAME }}/hpa-final:latest
+          mkdir -p /tmp/in /tmp/out
+          cp inputs/grid-6-7.txt /tmp/in/
+          docker run --rm \
+            -v /tmp/in:/input \
+            -v /tmp/out:/output \
+            ${{ secrets.DOCKERHUB_USERNAME }}/hpa-final:latest \
+            /input/grid-6-7.txt /output/grid-6-7.out
+          echo "Output:"
+          cat /tmp/out/grid-6-7.out
